@@ -1,0 +1,157 @@
+
+{% extends "base.html" %}
+
+{% block title %}Classification Result - AI Medical Image Classifier{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center mt-5">
+    <div class="col-lg-10">
+        <div class="card">
+            <div class="card-header">
+                <h2 class="mb-0"><i class="fas fa-stethoscope"></i> Analysis Result</h2>
+            </div>
+            <div class="card-body">
+                <!-- Main Result -->
+                <div class="alert alert-success alert-dismissible">
+                    <i class="fas fa-check-circle me-2"></i>
+                    <strong>Classification Successful</strong>
+                </div>
+
+                {% if warning_message %}
+                <div class="alert alert-warning" role="alert">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>Reliability Warning:</strong> {{ warning_message }}
+                </div>
+                {% endif %}
+
+                <!-- Classification Result -->
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <div class="result-container">
+                            <h3><i class="fas fa-diagnoses"></i> Diagnosis</h3>
+                            <div class="badge-class" style="font-size: 18px; padding: 15px 20px;">
+                                {{ label }}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="result-container">
+                            <h3><i class="fas fa-chart-pie"></i> Confidence</h3>
+                            <div class="confidence-meter">
+                                <div class="confidence-fill" style="width: {{ confidence }}%">
+                                    {{ confidence }}%
+                                </div>
+                            </div>
+                            <p class="text-muted mb-0">Model Confidence: <strong>{{ confidence }}%</strong></p>
+                            <p class="text-muted mb-0">Raw Softmax: <strong>{{ raw_confidence }}%</strong></p>
+                            <p class="text-muted mb-0">Reliability: <strong>{% if is_reliable %}High{% else %}Low{% endif %}</strong></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Images -->
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <h4><i class="fas fa-image"></i> Original Image</h4>
+                        <img src="{{ url_for('static', filename=image) }}" alt="Original X-Ray" class="result-image">
+                    </div>
+                    <div class="col-md-6">
+                        <h4><i class="fas fa-fire"></i> Attention Heatmap (Grad-CAM)</h4>
+                        {% if heatmap %}
+                            <img src="{{ url_for('static', filename=heatmap) }}" alt="Grad-CAM Heatmap" class="result-image">
+                        {% else %}
+                            <div class="alert alert-warning">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                Heatmap generation unavailable
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Top 3 Predictions -->
+                {% if top_3 %}
+                <div class="mb-4">
+                    <h3><i class="fas fa-medal"></i> Top 3 Predictions</h3>
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Rank</th>
+                                    <th>Classification</th>
+                                    <th>Confidence</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+    {% for prediction in top_3 %}
+    <tr>
+        <td>
+            <span class="badge bg-primary">{{ loop.index }}</span>
+        </td>
+        <td>{{ prediction.class }}</td>
+        <td>
+            <strong>{{ "%.2f"|format(prediction.confidence) }}%</strong>
+        </td>
+    </tr>
+    {% endfor %}
+</tbody>
+                        </table>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Actions -->
+                <div class="d-grid gap-2 d-sm-flex justify-content-center mt-5">
+                    <a href="/" class="btn btn-primary btn-lg">
+                        <i class="fas fa-cloud-upload-alt"></i> Analyze Another Image
+                    </a>
+                    <button class="btn btn-secondary btn-lg" onclick="printResult()">
+                        <i class="fas fa-print"></i> Print Report
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Information Card -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h3 class="mb-0"><i class="fas fa-info-circle"></i> About This Classification</h3>
+            </div>
+            <div class="card-body">
+                <p>This classification is performed using a <strong>DenseNet convolutional neural network</strong> trained on medical X-Ray images.</p>
+                <h5>Interpretation Guide:</h5>
+                <ul>
+                    <li><strong>Confidence Score:</strong> How certain the model is about this classification (higher is better)</li>
+                    <li><strong>Heatmap:</strong> Shows which regions of the image the model focused on for this prediction</li>
+                    <li><strong>Top 3 Predictions:</strong> The three most likely classifications according to the model</li>
+                </ul>
+                <div class="alert alert-warning mt-3">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <strong>Disclaimer:</strong> This tool is for educational and research purposes. Always consult with a qualified medical professional for actual medical diagnosis.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function printResult() {
+    window.print();
+}
+
+// Create enumerate filter for Jinja2
+</script>
+
+<!-- Custom CSS for printing -->
+<style media="print">
+    .navbar, .footer, .btn-secondary {
+        display: none !important;
+    }
+    body {
+        background: white !important;
+    }
+    .card {
+        box-shadow: none;
+        border: 1px solid #ddd;
+    }
+</style>
+{% endblock %}

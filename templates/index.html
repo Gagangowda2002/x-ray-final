@@ -1,0 +1,149 @@
+
+{% extends "base.html" %}
+
+{% block title %}Upload X-Ray Image - AI Medical Image Classifier{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center mt-5">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h2 class="mb-0"><i class="fas fa-cloud-upload-alt"></i> Upload X-Ray Image</h2>
+            </div>
+            <div class="card-body">
+                {% if error %}
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="fas fa-exclamation-circle"></i> <strong>Error:</strong> {{ error }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                {% endif %}
+
+                <form id="uploadForm" method="POST" enctype="multipart/form-data">
+                    <div class="mb-4">
+                        <label for="fileInput" class="file-input-label">
+                            <i class="fas fa-file-medical"></i>
+                            <span>
+                                <strong>Click to upload</strong> or drag and drop<br>
+                                <small>Supported formats: JPG, PNG, GIF, BMP, DICOM (Max 16MB)</small>
+                            </span>
+                        </label>
+                        <input 
+                            type="file" 
+                            id="fileInput" 
+                            name="file" 
+                            class="form-control" 
+                            accept=".jpg,.jpeg,.png,.gif,.bmp,.dicom,.dcm"
+                            required>
+                    </div>
+
+                    <div id="fileInfo" class="alert alert-info d-none">
+                        <i class="fas fa-info-circle"></i>
+                        <span id="fileName"></span>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary btn-lg" id="submitBtn">
+                            <i class="fas fa-flask"></i> Analyze Image
+                        </button>
+                    </div>
+                </form>
+
+                <div id="loadingSpinner" class="text-center mt-4 d-none">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-3"><strong>Processing image...</strong></p>
+                    <p class="text-muted">Please wait while we analyze your X-Ray image</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h3 class="mb-0"><i class="fas fa-check-circle"></i> How It Works</h3>
+            </div>
+            <div class="card-body">
+                <ol>
+                    <li><strong>Upload:</strong> Select an X-Ray image from your device</li>
+                    <li><strong>Process:</strong> Our AI model analyzes the image using DenseNet</li>
+                    <li><strong>Classify:</strong> The system identifies the type of fracture or normal condition</li>
+                    <li><strong>Visualize:</strong> View attention heatmaps showing critical areas</li>
+                </ol>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h3 class="mb-0"><i class="fas fa-list"></i> Supported Fracture Types</h3>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <ul class="list-unstyled">
+                            <li><span class="badge bg-primary">Avulsion Fracture</span></li>
+                            <li><span class="badge bg-primary">Comminuted Fracture</span></li>
+                            <li><span class="badge bg-primary">Fracture Dislocation</span></li>
+                            <li><span class="badge bg-primary">Greenstick Fracture</span></li>
+                            <li><span class="badge bg-primary">Hairline Fracture</span></li>
+                            <li><span class="badge bg-primary">Impacted Fracture</span></li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <ul class="list-unstyled">
+                            <li><span class="badge bg-success">Longitudinal Fracture</span></li>
+                            <li><span class="badge bg-success">Normal</span></li>
+                            <li><span class="badge bg-success">Oblique Fracture</span></li>
+                            <li><span class="badge bg-success">Pathological Fracture</span></li>
+                            <li><span class="badge bg-success">Spiral Fracture</span></li>
+                            <li><span class="badge bg-success">Transverse Fracture</span></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// File input handling
+const fileInput = document.getElementById('fileInput');
+const fileInfo = document.getElementById('fileInfo');
+const fileName = document.getElementById('fileName');
+const submitBtn = document.getElementById('submitBtn');
+const loadingSpinner = document.getElementById('loadingSpinner');
+const uploadForm = document.getElementById('uploadForm');
+
+// Show file name when selected
+fileInput.addEventListener('change', function() {
+    if (this.files.length > 0) {
+        fileName.textContent = `Selected: ${this.files[0].name} (${(this.files[0].size / 1024 / 1024).toFixed(2)}MB)`;
+        fileInfo.classList.remove('d-none');
+    }
+});
+
+// Drag and drop
+const label = document.querySelector('.file-input-label');
+label.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    label.style.background = '#e8eaf6';
+});
+
+label.addEventListener('dragleave', () => {
+    label.style.background = '#f8f9fa';
+});
+
+label.addEventListener('drop', (e) => {
+    e.preventDefault();
+    fileInput.files = e.dataTransfer.files;
+    const event = new Event('change', { bubbles: true });
+    fileInput.dispatchEvent(event);
+    label.style.background = '#f8f9fa';
+});
+
+// Form submission
+uploadForm.addEventListener('submit', function() {
+    submitBtn.disabled = true;
+    loadingSpinner.classList.remove('d-none');
+});
+</script>
+{% endblock %}
